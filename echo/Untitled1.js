@@ -1,5 +1,0 @@
-/*
- * WebRTC echo client
- */
- 
- 
