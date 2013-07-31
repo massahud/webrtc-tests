@@ -10,8 +10,9 @@
  
  
  console.log("SERVER");
+ console.log("THE FIRST STEP IS ON THE CLIENT CONSOLE");
  
- var pc = new webkitRTCPeerConnection({"iceServers": [{"url": "stun:stun.l.google.com:19302"}]}, {optional: [{RtpDataChannels: true}]});
+ var pc = new RTCPeerConnection({"iceServers": [{"url": "stun:stun.l.google.com:19302"}]}, {optional: [{RtpDataChannels: true}]});
  pc.onicecandidate = onIceCandidate;
  pc.ondatachannel = onDataChannel;
  var channel;
@@ -33,8 +34,7 @@ function receiveOffer(offerSdp) {
 
 }
  
- function onDataChannel(event) {
-     console.log('onDataChannel');
+ function onDataChannel(event) {     
      channel = event.channel;
      channel.onmessage = onMessage;
      channel.onopen = onChannelStateChange;
@@ -55,7 +55,8 @@ function receiveOffer(offerSdp) {
  
  
  function onChannelStateChange(event) {
-     if (event.readyState==="open") {
+     
+     if (event.srcElement.readyState == "open") {
         console.log("CONNECTION ESTABLISHED: now use channel.send('message') to send messages");
      }
  }
