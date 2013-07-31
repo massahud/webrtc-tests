@@ -1,8 +1,10 @@
 /*
+ * Copyright (c) 2013, Geraldo Augusto Massahud Rodrigues dos Santos
+ *
  * WebRTC copy & paste client
  *
  * It's the answerer that receives offers from clients.
- 
+ *
  * The connection establishment will happen using copy & paste from/to each console, 
  * guided by console instructions.
  *
