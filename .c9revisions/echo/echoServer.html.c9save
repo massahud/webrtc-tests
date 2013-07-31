@@ -1,0 +1,3 @@
+{"ts":1375243430708,"silentsave":true,"restoring":false,"patch":[[]],"length":0}
+{"contributors":[],"silentsave":false,"ts":1375243491310,"patch":[[{"diffs":[[1,"<html>\n    <head>\n       <script type=\"text/javascript\" src=\"https://webrtc.googlecode.com/svn/stable/samples/js/base/adapter.js\"></script> \n    </head>\n    <body>        \n    </body>\n</html>"]],"start1":0,"start2":0,"length1":0,"length2":191}]],"length":191,"saved":false}
+{"ts":1375243501965,"patch":[[{"diffs":[[0,"cript> \n"],[1,"       <script type=\"text/javascript\" src=\"echoServer.js\"></script> \n"],[0,"    </he"]],"start1":133,"start2":133,"length1":16,"length2":85}]],"length":260,"saved":false}
