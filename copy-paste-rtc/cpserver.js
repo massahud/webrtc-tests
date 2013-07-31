@@ -1,10 +1,15 @@
 /*
- * WebRTC echo client
- * É o answerer, deve pegar o offer e atribuí-lo com setRemoteDescription
+ * WebRTC copy & paste client
+ *
+ * It's the answerer that receives offers from clients.
+ 
+ * The connection establishment will happen using copy & paste from/to each console, 
+ * guided by console instructions.
+ *
  */
  
  
- console.log("CLIENTE");
+ console.log("SERVER");
  
  var pc = new webkitRTCPeerConnection({"iceServers": [{"url": "stun:stun.l.google.com:19302"}]}, {optional: [{RtpDataChannels: true}]});
  pc.onicecandidate = onIceCandidate;
@@ -15,21 +20,14 @@
  var mediaConstraints = {
     optional: [],
     mandatory: {
-        OfferToReceiveAudio: false, // Hmm!!
-        OfferToReceiveVideo: false // Hmm!!
+        OfferToReceiveAudio: false, 
+        OfferToReceiveVideo: false 
     }
 };
 
-function createAnswer(offerSdp) {
+function receiveOffer(offerSdp) {
     
     pc.ondatachannel = onDataChannel;
-    /*
-    channel = pc.createDataChannel('RTCDataChannel', {
-        reliable: false
-    });
-    */
-    
-
     pc.setRemoteDescription(offerSdp);
     pc.createAnswer(onDescription, null, mediaConstraints);
 
@@ -47,9 +45,9 @@ function createAnswer(offerSdp) {
      var candidate = JSON.parse(candidateJson);
      pc.addIceCandidate(candidate);
  }
+ 
  var iceCandidates = [];
- function onIceCandidate(event) {
-     //console.log("onIceCandidate");
+ function onIceCandidate(event) {     
      if (event.candidate) {
          iceCandidates.push(event.candidate);
      }
@@ -58,23 +56,25 @@ function createAnswer(offerSdp) {
  
  function onChannelStateChange(event) {
      if (event.readyState==="open") {
-        console.log("CONCLUÍDO: agora utilize channel.send para enviar mensagens");     
+        console.log("CONNECTION ESTABLISHED: now use channel.send('message') to send messages");
      }
+ }
+ 
+ function onDescription(desc) {
+     console.log("2 - Answer created. Send answer to client. Copy & Paste on the client console:");     
+     console.log('setRemoteDescription(new RTCSessionDescription(JSON.parse(\'' + JSON.stringify(desc).replace(/\\/g,"\\\\") + '\')));');
+     pc.setLocalDescription(desc);
  }
  
  function setCandidates(candidates) {
      for (var i = 0; i < candidates.length; i++) {
         pc.addIceCandidate(new RTCIceCandidate(candidates[i]));
      }
-     console.log("4 - Passar iceCandidates para o cliente. Copie e cole no servidor:");
+     console.log("4 - SEND ice candidates to client. Copy & Paste on the client console:");
      console.log("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g,"\\\\") + "'));")
  }
  
- function onDescription(desc) {
-     console.log("2 - Repassar answerSDP para o servidor. Copie e cole no servidor:");
-     console.log('setRemoteDescription(new RTCSessionDescription(JSON.parse(\'' + JSON.stringify(desc).replace(/\\/g,"\\\\") + '\')));');
-     pc.setLocalDescription(desc);
- }
+ 
  
  function close() {
      console.log("close");
@@ -84,6 +84,5 @@ function createAnswer(offerSdp) {
  }
  
   function onMessage(event) {
-     console.log('on message: ' + event.data);
-     channel.send('echo: ' + event.data);
+     console.log('Message received: ' + event.data);     
  }

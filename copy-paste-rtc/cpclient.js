@@ -1,11 +1,14 @@
 /*
- * WebRTC echo server
- * É o offerer, os clientes devem pegar o offer description de algum lugar. No caso atual, copiar o JSON do console mesmo.
- * Depois disso ele deve adicionar o answer description gerado pelo cliente.
+ * WebRTC copy & paste client
+ *
+ * It's the offerer that starts the communication with the server.
+ * The connection establishment will happen using copy & paste from/to each console, 
+ * guided by console instructions.
+ *
  */
  
- console.log("SERVIDOR");
- console.log("SIGA OS PASSOS PARA ESTABELECER A COMUNICAÇÃO.");
+ console.log("CLIENT");
+ console.log("FOLLOW THE CONSOLE STEPS TO OPEN CONNECTION");
  
  
  var pc = new webkitRTCPeerConnection({"iceServers": [{"url": "stun:stun.l.google.com:19302"}]}, {optional: [{RtpDataChannels: true}]});
@@ -39,11 +42,7 @@ createChannel();
      channel.onclose = onChannelStateChange;
  }
  
- function setRemoteDescription(desc) {
-     pc.setRemoteDescription(desc);
-     console.log("3 - Passar iceCandidates para o cliente. Copie e cole no cliente:");
-     console.log("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g,"\\\\") + "'));")
- }
+ 
  
  function setCandidates(candidates) {
      for (var i = 0; i < candidates.length; i++) {
@@ -53,14 +52,20 @@ createChannel();
  
  function onChannelStateChange(event) {
      if (event.readyState==="open") {
-        console.log("CONCLUÍDO: agora utilize channel.send para enviar mensagens");     
+        console.log("CONNECTION ESTABLISHED: now use channel.send('message') to send messages");
      }
  }
  
  function onDescription(desc) {
-     console.log("1 - Passar offerSDP para o cliente. Copie e cole no cliente:");
+     console.log("1 - Offer created. Send offer to server. Copy & Paste on the server console:");
      pc.setLocalDescription(desc);
-     console.log('createAnswer(new RTCSessionDescription(JSON.parse(\'' + JSON.stringify(desc).replace(/\\/g,"\\\\") + '\')));')
+     console.log('receiveOffer(new RTCSessionDescription(JSON.parse(\'' + JSON.stringify(desc).replace(/\\/g,"\\\\") + '\')));')
+ }
+ 
+ function setRemoteDescription(desc) {
+     pc.setRemoteDescription(desc);
+     console.log("3 - SEND ice candidates to server. Copy & Paste on the server console:");
+     console.log("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g,"\\\\") + "'));")
  }
  
  function close() {
@@ -70,6 +75,5 @@ createChannel();
  }
  
  function onMessage(event) {
-     console.log('on message: ' + event.data);
-     channel.send('echo: ' + event.data);
+     console.log('Message received: ' + event.data);     
  }
