@@ -25,12 +25,12 @@ var options = {
 var iceServers;
 if (webrtcDetectedBrowser == "chrome") {
     iceServers = {
-        "iceServers": createIceServer("stun:stun.l.google.com:19302")
+        "iceServers": [createIceServer("stun:stun.l.google.com:19302")]
     };
 }
 else if (webrtcDetectedBrowser == "firefox") {
     iceServers = {
-        "iceServers": createIceServer("stun:stun.services.mozilla.com")
+        "iceServers": [createIceServer("stun:stun.services.mozilla.com")]
     };
 }
 
