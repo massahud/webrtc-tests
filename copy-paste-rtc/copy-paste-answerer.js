@@ -18,7 +18,13 @@ var options = {
 };
 var channel;
 var pc;
-var mediaConstraints;
+var mediaConstraints = {
+    optional: [],
+    mandatory: {
+        OfferToReceiveAudio: false,
+        OfferToReceiveVideo: false
+    }
+};
 
 var iceCandidates = [];
 
@@ -41,16 +47,10 @@ function initialize() {
     pc.onicecandidate = onIceCandidate;
     pc.ondatachannel = onDataChannel;
 
-    
 
 
-    mediaConstraints = {
-        optional: [],
-        mandatory: {
-            OfferToReceiveAudio: false,
-            OfferToReceiveVideo: false
-        }
-    };
+
+
 
     addStep("Waiting for offer, go to the offerer window get it");
 
@@ -74,7 +74,9 @@ function addStep(message) {
     var div = document.createElement('div');
     div.setAttribute('class', 'step');
     div.innerHTML = message;
-    div.onclick = function() {selectText(this);};
+    div.onclick = function() {
+        selectText(this);
+    };
     content.appendChild(div);
     window.scrollTo(0, document.height);
 }

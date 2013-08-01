@@ -20,7 +20,13 @@ var options = {
 };
 var channel;
 var pc;
-var mediaConstraints;
+var mediaConstraints = {
+    optional: [],
+    mandatory: {
+        OfferToReceiveAudio: false,
+        OfferToReceiveVideo: false
+    }
+};
 
 var iceCandidates = [];
 
@@ -47,13 +53,7 @@ function initialize() {
     pc = new RTCPeerConnection(iceServers, options);
     pc.onicecandidate = onIceCandidate;
 
-    mediaConstraints = {
-        optional: [],
-        mandatory: {
-            OfferToReceiveAudio: false,
-            OfferToReceiveVideo: false
-        }
-    };
+
     createChannel();
     if (webrtcDetectedBrowser == "chrome") {
         pc.createOffer(onDescription, null, mediaConstraints);
@@ -91,7 +91,9 @@ function addStep(message) {
     var div = document.createElement('div');
     div.setAttribute('class', 'step');
     div.innerHTML = message;
-    div.onclick = function() {selectText(this);};
+    div.onclick = function() {
+        selectText(this);
+    };
     content.appendChild(div);
     window.scrollTo(0, document.height);
 }
