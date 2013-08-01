@@ -10,29 +10,34 @@
  *
  */
 
+var iceServers;
+var options = {
+        optional: [{
+            DtlsSrtpKeyAgreement: true
+        }, {
+            RtpDataChannels: true
+        }]
+    };
+
+if (webrtcDetectedBrowser == 'chrome') {
+    iceServers = {
+        "iceServers": [{
+            "url": "stun:stun.l.google.com:19302"
+        }]
+    };
+    
+}
+else if (webrtcDetectedBrowser == 'firefox') {
+    console.log('iceFirefox');
+    iceServers = {
+        "iceServers": [{
+            "url": "stun:stun.services.mozilla.com"
+        }]
+    };    
+}
+
 console.log("CLIENT");
 console.log("FOLLOW THE CONSOLE STEPS TO OPEN CONNECTION");
-
-
-var options = {
-    optional: [{
-        RtpDataChannels: true
-    }, {
-        DtlsSrtpKeyAgreement: true
-    }]
-};
-var iceServers;
-if (webrtcDetectedBrowser == "chrome") {
-    iceServers = {
-        "iceServers": [createIceServer("stun:stun.l.google.com:19302")]
-    };
-}
-else if (webrtcDetectedBrowser == "firefox") {
-    iceServers = {
-        "iceServers": [createIceServer("stun:stun.services.mozilla.com")]
-    };
-}
-console.log(iceServers);
 
 
 var pc = new RTCPeerConnection(iceServers, options);
@@ -42,13 +47,24 @@ var mediaConstraints = {
     optional: [],
     mandatory: {
         OfferToReceiveAudio: false,
-        OfferToReceiveVideo: false 
+        OfferToReceiveVideo: false
     }
 };
 createChannel();
+if (webrtcDetectedBrowser == "chrome") {
+    pc.createOffer(onDescription, null, mediaConstraints);
+}
+else {
+    getUserMedia({
+        audio: true,
+        fake: true
+    }, function(stream) {
+        console.log('getUserMedia');
+        pc.addStream(stream);
+        pc.createOffer(onDescription, null, mediaConstraints);
 
-pc.createOffer(onDescription, null, mediaConstraints);
-
+    },  function(erro) {console.log(erro);});
+}
 var channel;
 
 
@@ -81,7 +97,7 @@ function setCandidates(candidates) {
 }
 
 function onChannelStateChange(event) {
-    if (event.srcElement.readyState == "open") {
+    if (event.type == "open") {
         console.log("CONNECTION ESTABLISHED: now use channel.send('message') to send messages");
     }
 }
@@ -93,9 +109,11 @@ function onDescription(desc) {
 }
 
 function setRemoteDescription(desc) {
-    pc.setRemoteDescription(desc);
-    console.log("3 - SEND ice candidates to server. Copy & Paste on the server console:");
-    console.log("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g, "\\\\") + "'));")
+    pc.setRemoteDescription(desc);    
+    if (webrtcDetectedBrowser == "chrome") {
+        console.log("3 - SEND ice candidates to server. Copy & Paste on the server console:");
+        console.log("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g, "\\\\") + "'));")
+    }
 }
 
 function close() {

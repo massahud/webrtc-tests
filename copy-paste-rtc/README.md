@@ -5,7 +5,8 @@ This is a simple rtc data connection with offerer and answerer.
 
 I've made it to better understand the webrtc handshake, so it uses copy & paste to do the external signaling part. 
 
-The current version works only on Chrome, because Firefox's handshake is a little different, and I still have not had time to study it.
+The current version works only on Chrome-Chrome and Firefox-Firefox. Tested on Chrome 28 and Firefox 22. 
+
 
 To use it, open [copy-paste-server.html](https://rawgithub.com/massahud/webrtc-tests/master/copy-paste-rtc/copy-paste-server.html) 
 and [copy-paste-client.html](https://rawgithub.com/massahud/webrtc-tests/master/copy-paste-rtc/copy-paste-client.html) 
@@ -14,5 +15,4 @@ instructions.
 
 TODO
 ====
-1. Make it work on firefox
-2. Make it work cross-browser
+- Make it work cross-browser

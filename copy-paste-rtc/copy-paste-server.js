@@ -54,7 +54,23 @@ function receiveOffer(offerSdp) {
 
     pc.ondatachannel = onDataChannel;
     pc.setRemoteDescription(offerSdp);
-    pc.createAnswer(onDescription, null, mediaConstraints);
+
+    if (webrtcDetectedBrowser == "chrome") {
+        pc.createAnswer(onDescription, null, mediaConstraints);
+    }
+    else {
+        // firefox bug needs to establish an audio or video stream for data connection
+        getUserMedia({
+            audio: true,
+            fake: true
+        }, function(stream) {
+            console.log('getUserMedia');
+            pc.addStream(stream);
+            pc.createAnswer(onDescription, null, mediaConstraints);
+
+        }, function(erro) {console.log(erro);});
+    }
+
 
 }
 
@@ -80,8 +96,7 @@ function onIceCandidate(event) {
 
 
 function onChannelStateChange(event) {
-
-    if (event.srcElement.readyState == "open") {
+    if (event.type == "open") {
         console.log("CONNECTION ESTABLISHED: now use channel.send('message') to send messages");
     }
 }
@@ -96,8 +111,11 @@ function setCandidates(candidates) {
     for (var i = 0; i < candidates.length; i++) {
         pc.addIceCandidate(new RTCIceCandidate(candidates[i]));
     }
-    console.log("4 - SEND ice candidates to client. Copy & Paste on the client console:");
-    console.log("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g, "\\\\") + "'));")
+     // TODO: firefox-firefox does not need to pass candidates because they are passed inside SDP.
+    if (webrtcDetectedBrowser == "chrome") {
+        console.log("4 - SEND ice candidates to client. Copy & Paste on the client console:");
+        console.log("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g, "\\\\") + "'));")
+    }
 }
 
 
