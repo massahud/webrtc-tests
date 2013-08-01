@@ -40,8 +40,8 @@ pc.onicecandidate = onIceCandidate;
 var mediaConstraints = {
     optional: [],
     mandatory: {
-        OfferToReceiveAudio: false, // Hmm!!
-        OfferToReceiveVideo: false // Hmm!!
+        OfferToReceiveAudio: false,
+        OfferToReceiveVideo: false 
     }
 };
 createChannel();
