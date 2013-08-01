@@ -1,75 +1,100 @@
 /*
  * Copyright (c) 2013, Geraldo Augusto Massahud Rodrigues dos Santos
  *
- * WebRTC copy & paste client
- *
- * It's the offerer that starts the communication with the server.
+ * WebRTC copy & paste offerer
  *
  * The connection establishment will happen using copy & paste from/to each console, 
  * guided by console instructions.
  *
  */
 
+
+
 var iceServers;
 var options = {
-        optional: [{
-            DtlsSrtpKeyAgreement: true
-        }, {
-            RtpDataChannels: true
-        }]
-    };
-
-if (webrtcDetectedBrowser == 'chrome') {
-    iceServers = {
-        "iceServers": [{
-            "url": "stun:stun.l.google.com:19302"
-        }]
-    };
-    
-}
-else if (webrtcDetectedBrowser == 'firefox') {
-    console.log('iceFirefox');
-    iceServers = {
-        "iceServers": [{
-            "url": "stun:stun.services.mozilla.com"
-        }]
-    };    
-}
-
-console.log("CLIENT");
-console.log("FOLLOW THE CONSOLE STEPS TO OPEN CONNECTION");
-
-
-var pc = new RTCPeerConnection(iceServers, options);
-pc.onicecandidate = onIceCandidate;
-
-var mediaConstraints = {
-    optional: [],
-    mandatory: {
-        OfferToReceiveAudio: false,
-        OfferToReceiveVideo: false
-    }
+    optional: [{
+        DtlsSrtpKeyAgreement: true
+    }, {
+        RtpDataChannels: true
+    }]
 };
-createChannel();
-if (webrtcDetectedBrowser == "chrome") {
-    pc.createOffer(onDescription, null, mediaConstraints);
-}
-else {
-    getUserMedia({
-        audio: true,
-        fake: true
-    }, function(stream) {
-        console.log('getUserMedia');
-        pc.addStream(stream);
-        pc.createOffer(onDescription, null, mediaConstraints);
-
-    },  function(erro) {console.log(erro);});
-}
 var channel;
-
-
+var pc;
+var mediaConstraints;
 
 var iceCandidates = [];
+
+function initialize() {
+    if (webrtcDetectedBrowser == 'chrome') {
+        iceServers = {
+            "iceServers": [{
+                "url": "stun:stun.l.google.com:19302"
+            }]
+        };
+
+    }
+    else if (webrtcDetectedBrowser == 'firefox') {
+        iceServers = {
+            "iceServers": [{
+                "url": "stun:stun.services.mozilla.com"
+            }]
+        };
+    }
+
+    addStep("OFFERER");
+
+
+    pc = new RTCPeerConnection(iceServers, options);
+    pc.onicecandidate = onIceCandidate;
+
+    mediaConstraints = {
+        optional: [],
+        mandatory: {
+            OfferToReceiveAudio: false,
+            OfferToReceiveVideo: false
+        }
+    };
+    createChannel();
+    if (webrtcDetectedBrowser == "chrome") {
+        pc.createOffer(onDescription, null, mediaConstraints);
+    }
+    else {
+        getUserMedia({
+            audio: true,
+            fake: true
+        }, function(stream) {
+            //console.log('getUserMedia');
+            pc.addStream(stream);
+            pc.createOffer(onDescription, null, mediaConstraints);
+
+        }, function(erro) {
+            addStep("Error obtaining fake audio stream:<br/>" + JSON.stringify(erro));
+        });
+    }
+}
+
+function selectText(element) {
+    if (document.selection) {
+        var range = document.body.createTextRange();
+        range.moveToElementText(element);
+        range.select();
+    }
+    else if (window.getSelection) {
+        var range = document.createRange();
+        range.selectNode(element);
+        window.getSelection().addRange(range);
+    }
+}
+
+function addStep(message) {
+    var content = document.getElementById('content');
+    var div = document.createElement('div');
+    div.setAttribute('class', 'step');
+    div.innerHTML = message;
+    div.onclick = function() {selectText(this);};
+    content.appendChild(div);
+    window.scrollTo(0, document.height);
+}
 
 function onIceCandidate(event) {
     //console.log("onIceCandidate");
@@ -82,10 +107,10 @@ function createChannel() {
     channel = pc.createDataChannel('RTCDataChannel', {
         reliable: false
     });
+    addStep("DataChannel created");
     channel.onmessage = onMessage;
     channel.onopen = onChannelStateChange;
     channel.onclose = onChannelStateChange;
-
 }
 
 
@@ -94,25 +119,29 @@ function setCandidates(candidates) {
     for (var i = 0; i < candidates.length; i++) {
         pc.addIceCandidate(new RTCIceCandidate(candidates[i]));
     }
+    addStep("Added ICE candidates from answerer");
 }
 
 function onChannelStateChange(event) {
     if (event.type == "open") {
-        console.log("CONNECTION ESTABLISHED: now use channel.send('message') to send messages");
+        addStep("CONNECTION ESTABLISHED: now use channel.send('message') on console to send messages");
     }
 }
 
 function onDescription(desc) {
-    console.log("1 - Offer created. Send offer to server. Copy & Paste on the server console:");
+    addStep("Offer created and set as peer connection local description");
     pc.setLocalDescription(desc);
-    console.log('receiveOffer(new RTCSessionDescription(JSON.parse(\'' + JSON.stringify(desc).replace(/\\/g, "\\\\") + '\')));')
+
+    addStep("Send offer to answerer. Copy & Paste the next code on the answerer console:");
+    addStep('receiveOffer(new RTCSessionDescription(JSON.parse(\'' + JSON.stringify(desc).replace(/\\/g, "\\\\") + '\')));')
 }
 
 function setRemoteDescription(desc) {
-    pc.setRemoteDescription(desc);    
+    pc.setRemoteDescription(desc);
+    addStep("Answer received and set as remote description");
     if (webrtcDetectedBrowser == "chrome") {
-        console.log("3 - SEND ice candidates to server. Copy & Paste on the server console:");
-        console.log("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g, "\\\\") + "'));")
+        addStep("Send ice candidates to answerer. Copy & Paste the next code on the answerer console:");
+        addStep("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g, "\\\\") + "'));")
     }
 }
 
@@ -123,5 +152,5 @@ function close() {
 }
 
 function onMessage(event) {
-    console.log('Message received: ' + event.data);
+    addStep('Message received: ' + event.data);
 }

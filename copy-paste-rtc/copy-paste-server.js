@@ -1,56 +1,87 @@
 /*
  * Copyright (c) 2013, Geraldo Augusto Massahud Rodrigues dos Santos
  *
- * WebRTC copy & paste client
- *
- * It's the answerer that receives offers from clients.
+ * WebRTC copy & paste answerer
  *
  * The connection establishment will happen using copy & paste from/to each console, 
  * guided by console instructions.
  *
  */
 
-
-console.log("SERVER");
-
-console.log("THE FIRST STEP IS ON THE CLIENT CONSOLE");
-
+var iceServers;
 var options = {
     optional: [{
-        RtpDataChannels: true
-    }, {
         DtlsSrtpKeyAgreement: true
+    }, {
+        RtpDataChannels: true
     }]
 };
-var iceServers;
-if (webrtcDetectedBrowser == "chrome") {
-    iceServers = {
-        "iceServers": [createIceServer("stun:stun.l.google.com:19302")]
-    };
-}
-else if (webrtcDetectedBrowser == "firefox") {
-    iceServers = {
-        "iceServers": [createIceServer("stun:stun.services.mozilla.com")]
-    };
-}
-
-
-var pc = new RTCPeerConnection(iceServers, options);
-pc.onicecandidate = onIceCandidate;
-pc.ondatachannel = onDataChannel;
-
 var channel;
+var pc;
+var mediaConstraints;
 
+var iceCandidates = [];
 
-var mediaConstraints = {
-    optional: [],
-    mandatory: {
-        OfferToReceiveAudio: false,
-        OfferToReceiveVideo: false
+function initialize() {
+    addStep("ANSWERER");
+
+    if (webrtcDetectedBrowser == "chrome") {
+        iceServers = {
+            "iceServers": [createIceServer("stun:stun.l.google.com:19302")]
+        };
     }
-};
+    else if (webrtcDetectedBrowser == "firefox") {
+        iceServers = {
+            "iceServers": [createIceServer("stun:stun.services.mozilla.com")]
+        };
+    }
+
+
+    pc = new RTCPeerConnection(iceServers, options);
+    pc.onicecandidate = onIceCandidate;
+    pc.ondatachannel = onDataChannel;
+
+    
+
+
+    mediaConstraints = {
+        optional: [],
+        mandatory: {
+            OfferToReceiveAudio: false,
+            OfferToReceiveVideo: false
+        }
+    };
+
+    addStep("Waiting for offer, go to the offerer window get it");
+
+}
+
+function selectText(element) {
+    if (document.selection) {
+        var range = document.body.createTextRange();
+        range.moveToElementText(element);
+        range.select();
+    }
+    else if (window.getSelection) {
+        var range = document.createRange();
+        range.selectNode(element);
+        window.getSelection().addRange(range);
+    }
+}
+
+function addStep(message) {
+    var content = document.getElementById('content');
+    var div = document.createElement('div');
+    div.setAttribute('class', 'step');
+    div.innerHTML = message;
+    div.onclick = function() {selectText(this);};
+    content.appendChild(div);
+    window.scrollTo(0, document.height);
+}
+
 
 function receiveOffer(offerSdp) {
+    addStep("Offer received");
 
     pc.ondatachannel = onDataChannel;
     pc.setRemoteDescription(offerSdp);
@@ -68,7 +99,9 @@ function receiveOffer(offerSdp) {
             pc.addStream(stream);
             pc.createAnswer(onDescription, null, mediaConstraints);
 
-        }, function(erro) {console.log(erro);});
+        }, function(erro) {
+            addStep("Error creating fake audio stream: " + erro);
+        });
     }
 
 
@@ -76,6 +109,7 @@ function receiveOffer(offerSdp) {
 
 function onDataChannel(event) {
     channel = event.channel;
+    addStep("Data channel obtained");
     channel.onmessage = onMessage;
     channel.onopen = onChannelStateChange;
     channel.onclose = onChannelStateChange;
@@ -86,8 +120,6 @@ function setCandidate(candidateJson) {
     pc.addIceCandidate(candidate);
 }
 
-var iceCandidates = [];
-
 function onIceCandidate(event) {
     if (event.candidate) {
         iceCandidates.push(event.candidate);
@@ -97,24 +129,27 @@ function onIceCandidate(event) {
 
 function onChannelStateChange(event) {
     if (event.type == "open") {
-        console.log("CONNECTION ESTABLISHED: now use channel.send('message') to send messages");
+        addStep("CONNECTION ESTABLISHED: now use channel.send('message') on console to send messages");
     }
 }
 
 function onDescription(desc) {
-    console.log("2 - Answer created. Send answer to client. Copy & Paste on the client console:");
-    console.log('setRemoteDescription(new RTCSessionDescription(JSON.parse(\'' + JSON.stringify(desc).replace(/\\/g, "\\\\") + '\')));');
     pc.setLocalDescription(desc);
+    addStep("Answer created and set as peer connection local description.");
+    addStep("Send answer to offerer. Copy & Paste the next code on the offerer console:");
+    addStep('setRemoteDescription(new RTCSessionDescription(JSON.parse(\'' + JSON.stringify(desc).replace(/\\/g, "\\\\") + '\')));');
+
+
 }
 
 function setCandidates(candidates) {
     for (var i = 0; i < candidates.length; i++) {
         pc.addIceCandidate(new RTCIceCandidate(candidates[i]));
     }
-     // TODO: firefox-firefox does not need to pass candidates because they are passed inside SDP.
+    addStep("Added ICE candidates from offerer");
     if (webrtcDetectedBrowser == "chrome") {
-        console.log("4 - SEND ice candidates to client. Copy & Paste on the client console:");
-        console.log("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g, "\\\\") + "'));")
+        addStep("Send ice candidates to offerer. Copy & Paste the next code on the offerer console:");
+        addStep("setCandidates(JSON.parse('" + JSON.stringify(iceCandidates).replace(/\\/g, "\\\\") + "'));")
     }
 }
 
@@ -128,5 +163,5 @@ function close() {
 }
 
 function onMessage(event) {
-    console.log('Message received: ' + event.data);
+    addStep('Message received: ' + event.data);
 }
