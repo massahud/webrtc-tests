@@ -78,7 +78,7 @@ function addStep(message) {
         selectText(this);
     };
     content.appendChild(div);
-    window.scrollTo(0, document.height||document.body.scrollHeight);
+    window.scrollTo(0, document.body.scrollHeight);
 }
 
 
