@@ -95,7 +95,7 @@ function addStep(message) {
         selectText(this);
     };
     content.appendChild(div);
-    window.scrollTo(0, document.height);
+    window.scrollTo(0, document.height||document.body.scrollHeight);
 }
 
 function onIceCandidate(event) {
